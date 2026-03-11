@@ -424,7 +424,7 @@ export class GameServer {
     const laneTurretPoint = (team, lane, tier) => {
       const pathLength = PATH_LENGTHS[lane];
       const checkpoints = team === BLUE
-        ? [0.2, 0.4]
+        ? [0.4, 0.2]
         : [0.6, 0.8];
       const point = advanceAlongPath(LANE_PATHS[lane], pathLength * checkpoints[tier]);
       return { x: point.x, y: point.y };
@@ -1675,8 +1675,7 @@ export class GameServer {
       if (
         structure.team !== hero.team &&
         !structure.destroyed &&
-        this.isStructureVulnerable(structure) &&
-        this.canDamageStructure(hero.team, structure)
+        this.isStructureVulnerable(structure)
       ) {
         candidates.push(structure);
       }
