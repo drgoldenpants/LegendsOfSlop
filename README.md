@@ -1,4 +1,4 @@
-# League of Shapes
+# Legends Of Slop
 
 Initial playable browser MOBA prototype inspired by core League-style conventions: teams push minion waves, break turrets in order, then destroy the enemy nexus. This version is intentionally accelerated and reduced to a single main lane plus jungle camps so it is easy to test on a LAN and expand later.
 
