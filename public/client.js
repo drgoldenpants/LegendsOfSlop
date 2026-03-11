@@ -134,7 +134,6 @@ const state = {
   lobbyRosterPollStarted: false,
   lobbyRosterIntervalId: 0,
   shopFeedback: "",
-  dragShopItem: null,
   lastShopClick: {
     key: "",
     at: 0
@@ -1301,7 +1300,7 @@ function projectSelectableEntity(entity) {
   return {
     x: screen.x,
     y: screen.y - radius * 0.7,
-    radius: radius * 1.15
+    radius: radius * 1.35
   };
 }
 
@@ -1375,6 +1374,15 @@ function rightClickMoveTarget(clickX, clickY) {
     x: clamp(clickedEntity.x + dir.x * desiredDistance, 0, snapshot.world.width),
     y: clamp(clickedEntity.y + dir.y * desiredDistance, 0, snapshot.world.height)
   };
+}
+
+function rightClickTargetEntity(clickX, clickY) {
+  const you = state.snapshot?.you;
+  const clickedEntity = entityAtScreen(clickX, clickY);
+  if (!clickedEntity || !isAttackableTarget(clickedEntity, you)) {
+    return null;
+  }
+  return clickedEntity;
 }
 
 function abilityCooldown(you, key) {
@@ -1860,7 +1868,6 @@ function updateShop() {
           data-tooltip-extra="${escapeTooltipText(
             insufficientFunds && !locked ? `Cost ${item.cost} gold • Insufficient funds` : `Cost ${item.cost} gold`
           )}"
-          draggable="${locked ? "false" : "true"}"
           ${locked ? "disabled" : ""}>
           <strong>${item.label}</strong>
           <small>${item.short}</small>
@@ -1874,7 +1881,7 @@ function updateShop() {
     <div class="shop-frame">
       <div class="shop-header">
         <strong>Shop</strong>
-        <span>${state.shopFeedback || (you.inBase ? "Drag to inventory to buy" : "Return to fountain to buy")}</span>
+        <span>${state.shopFeedback || (you.inBase ? "Double click to buy" : "Return to fountain to buy")}</span>
       </div>
       <div class="shop-grid">${cards}</div>
     </div>
@@ -3469,27 +3476,6 @@ window.addEventListener("blur", () => {
   updateScoreboard();
 });
 
-shop.addEventListener("dragstart", (event) => {
-  const card = event.target.closest("[data-item-key]");
-  if (!card || card.disabled) return;
-  state.dragShopItem = {
-    itemKey: card.dataset.itemKey,
-    itemCost: Number(card.dataset.itemCost) || 0
-  };
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = "copy";
-    event.dataTransfer.setData("text/plain", card.dataset.itemKey || "");
-  }
-  state.shopFeedback = "Drop into inventory to buy";
-});
-
-shop.addEventListener("dragend", () => {
-  state.dragShopItem = null;
-  if (state.snapshot?.you?.inBase) {
-    state.shopFeedback = "";
-  }
-});
-
 function tooltipTargetFromEvent(event) {
   return event.target.closest("[data-tooltip-title], [data-tooltip-body], [data-tooltip-extra]");
 }
@@ -3576,46 +3562,6 @@ shop.addEventListener("dblclick", (event) => {
   attemptBuyItem(card.dataset.itemKey || "", Number(card.dataset.itemCost) || 0);
 });
 
-hud.addEventListener("dragover", (event) => {
-  if (!state.dragShopItem) return;
-  const dropZone = event.target.closest("[data-inventory-drop], .item-slot");
-  if (!dropZone) return;
-  event.preventDefault();
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = "copy";
-  }
-  const inventoryRow = hud.querySelector("[data-inventory-drop]");
-  if (inventoryRow) {
-    inventoryRow.classList.add("drop-active");
-  }
-});
-
-hud.addEventListener("dragleave", (event) => {
-  const inventoryRow = hud.querySelector("[data-inventory-drop]");
-  if (!inventoryRow) return;
-  const related = event.relatedTarget;
-  if (related && inventoryRow.contains(related)) return;
-  inventoryRow.classList.remove("drop-active");
-});
-
-hud.addEventListener("drop", (event) => {
-  if (!state.dragShopItem) return;
-  const dropZone = event.target.closest("[data-inventory-drop], .item-slot");
-  if (!dropZone) return;
-  event.preventDefault();
-
-  const inventoryRow = hud.querySelector("[data-inventory-drop]");
-  if (inventoryRow) {
-    inventoryRow.classList.remove("drop-active");
-  }
-
-  const you = state.snapshot?.you;
-  const { itemKey, itemCost } = state.dragShopItem;
-  state.dragShopItem = null;
-  if (!you) return;
-  attemptBuyItem(itemKey, itemCost);
-});
-
 canvas.addEventListener("contextmenu", (event) => {
   event.preventDefault();
   if (state.targetingAbility) {
@@ -3625,9 +3571,15 @@ canvas.addEventListener("contextmenu", (event) => {
   const rect = canvas.getBoundingClientRect();
   const clickX = event.clientX - rect.left;
   const clickY = event.clientY - rect.top;
+  const targetEntity = rightClickTargetEntity(clickX, clickY);
   const rangedTarget = rightClickMoveTarget(clickX, clickY);
   const world = rangedTarget || screenToWorld(clickX, clickY);
   state.moveTarget = { x: world.x, y: world.y };
+  if (targetEntity) {
+    queueAction({ type: "set-focus", targetId: targetEntity.id });
+  } else {
+    queueAction({ type: "clear-focus" });
+  }
   spawnLocalPing(world.x, world.y);
 });
 canvas.addEventListener("mousemove", (event) => {
@@ -3647,12 +3599,18 @@ canvas.addEventListener("mousedown", (event) => {
   const rect = canvas.getBoundingClientRect();
   const clickX = event.clientX - rect.left;
   const clickY = event.clientY - rect.top;
+  const targetEntity = rightClickTargetEntity(clickX, clickY);
   const rangedTarget = rightClickMoveTarget(clickX, clickY);
   const world = rangedTarget || screenToWorld(clickX, clickY);
   state.moveTarget = {
     x: clamp(world.x, 0, state.snapshot.world.width),
     y: clamp(world.y, 0, state.snapshot.world.height)
   };
+  if (targetEntity) {
+    queueAction({ type: "set-focus", targetId: targetEntity.id });
+  } else {
+    queueAction({ type: "clear-focus" });
+  }
 });
 
 canvas.addEventListener("click", (event) => {

@@ -19,15 +19,21 @@ function scalePath(path) {
   return path.map(scalePoint);
 }
 
+function r(value) {
+  return Math.round(s(value) * HITBOX_SCALE);
+}
+
 const TICK_RATE = 20;
 const TICK_MS = 1000 / TICK_RATE;
 const GAME_SPEED = 1.5;
 const STAT_SCALE = 1.35;
 const MAP_GEOMETRY_SCALE = 2.7;
+const RAW_WORLD = { width: 5600, height: 3600 };
 const TEAM_SIZE = 5;
+const HITBOX_SCALE = 1.25;
 const BASE_AURA_RADIUS = s(360);
 const SHOP_RADIUS = s(340);
-const WORLD = { width: m(5600), height: m(3600) };
+const WORLD = { width: m(RAW_WORLD.width), height: m(RAW_WORLD.height) };
 const BLUE = "blue";
 const RED = "red";
 const TEAMS = [BLUE, RED];
@@ -38,47 +44,52 @@ const SESSION_RESUME_WINDOW_MS = 30 * 60 * 1000;
 const MAX_MESSAGES = 12;
 const ASSIST_WINDOW_MS = 10000;
 const LANE_KEYS = ["top", "mid", "bot"];
+function mirrorRawPoint(point) {
+  return {
+    x: RAW_WORLD.width - point.x,
+    y: RAW_WORLD.height - point.y
+  };
+}
+
+function mirroredRawPath(path) {
+  return path.map(mirrorRawPoint).reverse();
+}
+
+const RAW_BLUE_BASE = { x: 360, y: 3140 };
+const RAW_RED_BASE = mirrorRawPoint(RAW_BLUE_BASE);
+const RAW_TOP_PATH = [
+  RAW_BLUE_BASE,
+  { x: 300, y: 2580 },
+  { x: 250, y: 2060 },
+  { x: 240, y: 1560 },
+  { x: 300, y: 1100 },
+  { x: 560, y: 760 },
+  { x: 920, y: 500 },
+  { x: 1480, y: 340 },
+  { x: 2280, y: 300 },
+  { x: 3180, y: 300 },
+  { x: 4100, y: 340 },
+  { x: 4860, y: 400 },
+  RAW_RED_BASE
+];
+const RAW_MID_PATH = [
+  RAW_BLUE_BASE,
+  { x: 760, y: 2760 },
+  { x: 1360, y: 2300 },
+  { x: 2140, y: 1860 },
+  { x: 3000, y: 1420 },
+  { x: 3860, y: 980 },
+  { x: 4460, y: 520 },
+  RAW_RED_BASE
+];
 const BASES = {
-  blue: scalePoint({ x: 360, y: 3140 }),
-  red: scalePoint({ x: 5230, y: 250 })
+  blue: scalePoint(RAW_BLUE_BASE),
+  red: scalePoint(RAW_RED_BASE)
 };
 const LANE_PATHS = {
-  top: scalePath([
-    { x: 360, y: 3140 },
-    { x: 290, y: 2580 },
-    { x: 230, y: 2040 },
-    { x: 210, y: 1540 },
-    { x: 260, y: 1080 },
-    { x: 520, y: 710 },
-    { x: 860, y: 420 },
-    { x: 1380, y: 240 },
-    { x: 2230, y: 180 },
-    { x: 3200, y: 165 },
-    { x: 4200, y: 190 },
-    { x: 5030, y: 220 },
-    { x: 5230, y: 260 }
-  ]),
-  mid: scalePath([
-    { x: 380, y: 3060 },
-    { x: 760, y: 2720 },
-    { x: 1300, y: 2300 },
-    { x: 2100, y: 1880 },
-    { x: 2980, y: 1410 },
-    { x: 3850, y: 920 },
-    { x: 4630, y: 520 },
-    { x: 5230, y: 260 }
-  ]),
-  bot: scalePath([
-    { x: 360, y: 3160 },
-    { x: 760, y: 3400 },
-    { x: 1180, y: 3560 },
-    { x: 1720, y: 3660 },
-    { x: 2460, y: 3600 },
-    { x: 3340, y: 3300 },
-    { x: 4240, y: 2720 },
-    { x: 4900, y: 1880 },
-    { x: 5230, y: 250 }
-  ])
+  top: scalePath(RAW_TOP_PATH),
+  mid: scalePath(RAW_MID_PATH),
+  bot: scalePath(mirroredRawPath(RAW_TOP_PATH))
 };
 
 const HERO_DEFS = {
@@ -444,7 +455,7 @@ export class GameServer {
       this.makeTurret(RED, "mid", 1, midRedInner.x, midRedInner.y),
       this.makeTurret(RED, "bot", 0, botRedOuter.x, botRedOuter.y),
       this.makeTurret(RED, "bot", 1, botRedInner.x, botRedInner.y),
-      this.makeNexus(RED, m(5340), m(200))
+      this.makeNexus(RED, m(5340), m(460))
     ];
   }
 
@@ -458,7 +469,7 @@ export class GameServer {
       y: camp.y,
       homeX: camp.x,
       homeY: camp.y,
-      radius: s(70),
+      radius: r(70),
       maxHp: 860,
       hp: 860,
       moveSpeed: s(160),
@@ -535,7 +546,7 @@ export class GameServer {
       tier,
       x,
       y,
-      radius: s(64),
+      radius: r(64),
       maxHp,
       hp: maxHp,
       range: s(500),
@@ -556,7 +567,7 @@ export class GameServer {
       tier: 2,
       x,
       y,
-      radius: s(90),
+      radius: r(90),
       maxHp,
       hp: maxHp,
       range: 0,
@@ -747,7 +758,7 @@ export class GameServer {
       color: def.color,
       x: spawn.x,
       y: spawn.y,
-      radius: s(26),
+      radius: r(26),
       hp: def.hp,
       maxHp: def.hp,
       moveSpeed: def.moveSpeed,
@@ -768,6 +779,7 @@ export class GameServer {
       gold: 1000,
       items: [],
       moveTarget: { x: spawn.x, y: spawn.y },
+      focusTargetId: "",
       cooldowns: { q: 0, w: 0, e: 0 },
       status: {
         stunUntil: 0,
@@ -886,6 +898,16 @@ export class GameServer {
 
     if (action.type === "cast") {
       this.castAbility(hero, action.slot, action.x, action.y);
+      return;
+    }
+
+    if (action.type === "set-focus") {
+      hero.focusTargetId = String(action.targetId || "");
+      return;
+    }
+
+    if (action.type === "clear-focus") {
+      hero.focusTargetId = "";
       return;
     }
 
@@ -1413,10 +1435,10 @@ export class GameServer {
     const path = LANE_PATHS[lane];
     const pathLength = PATH_LENGTHS[lane];
     const stats = kind === "ranged"
-      ? { hp: 108, speed: s(126), damage: 22, range: s(300), radius: s(15) }
+      ? { hp: 108, speed: s(126), damage: 22, range: s(300), radius: r(15) }
       : kind === "siege"
-        ? { hp: 220, speed: s(112), damage: 36, range: s(260), radius: s(20) }
-        : { hp: 145, speed: s(134), damage: 28, range: s(60), radius: s(17) };
+        ? { hp: 220, speed: s(112), damage: 36, range: s(260), radius: r(20) }
+        : { hp: 145, speed: s(134), damage: 28, range: s(60), radius: r(17) };
     const progress = team === BLUE ? trail : pathLength - trail;
     const point = advanceAlongPath(path, progress);
 
@@ -1662,6 +1684,28 @@ export class GameServer {
     for (const camp of this.camps) {
       if (camp.alive) {
         candidates.push(camp);
+      }
+    }
+
+    const focused = hero.focusTargetId
+      ? candidates.find((candidate) => candidate.id === hero.focusTargetId)
+      : null;
+    if (focused) {
+      const gap = distance(hero, focused);
+      if (gap <= hero.attackRange + focused.radius) {
+        hero.lastAttackAt = now;
+        this.pushEffect({
+          type: "line",
+          style: this.basicAttackStyle(hero),
+          x: hero.x,
+          y: hero.y,
+          x2: focused.x,
+          y2: focused.y,
+          team: hero.team,
+          ttl: hero.attackRange <= s(220) ? 0.18 : 0.22
+        });
+        this.applyDamage(focused, hero.attackDamage + hero.bonusDamage + hero.level * 2, hero);
+        return;
       }
     }
 
@@ -2267,6 +2311,7 @@ export class GameServer {
       castAnimationSlot: "",
       fountainAuraAt: 0
     };
+    hero.focusTargetId = "";
     hero.damageCredit = new Map();
   }
 
@@ -2404,6 +2449,7 @@ export class GameServer {
           gold: you.gold,
           level: you.level,
           xp: you.xp,
+          attackRange: you.attackRange,
           kills: you.kills,
           assists: you.assists,
           deaths: you.deaths,
