@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+npm-debug.log*
+__pycache__/
+*.pyc
+public/generated-assets/
+assets/generated/
+config/local/

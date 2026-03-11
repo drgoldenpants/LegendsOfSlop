@@ -1,0 +1,14 @@
+{
+  "name": "league-of-shapes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "generate:assets": "node scripts/generate-assets.js",
+    "build:spritesheets": "python3 scripts/build-spritesheets.py"
+  },
+  "dependencies": {
+    "ws": "^8.19.0"
+  }
+}

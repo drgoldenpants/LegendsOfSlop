@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Legends of Slop</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <canvas id="game"></canvas>
+
+      <div class="topbar" id="topbar"></div>
+      <div class="feed" id="feed"></div>
+      <div class="hud" id="hud"></div>
+      <div class="shop" id="shop"></div>
+      <div class="minimap-panel" id="minimap"></div>
+      <div class="scoreboard hidden" id="scoreboard"></div>
+
+      <div class="overlay hidden" id="overlay">
+        <div class="overlay-card">
+          <h2>Reforming</h2>
+          <p>Stand by.</p>
+        </div>
+      </div>
+
+      <section class="splash-screen" id="splashScreen">
+        <div class="splash-nebula"></div>
+        <div class="splash-vortex splash-vortex-left"></div>
+        <div class="splash-vortex splash-vortex-right"></div>
+        <div class="splash-content">
+          <div class="splash-logo">
+            <div class="splash-wings splash-wings-left"></div>
+            <div class="splash-title-wrap">
+              <div class="splash-title-top">Legends</div>
+              <div class="splash-title-mid">of</div>
+              <div class="splash-title-bottom">Slop</div>
+            </div>
+            <div class="splash-wings splash-wings-right"></div>
+          </div>
+
+          <div class="splash-loading">
+            <span>Loading Arena</span>
+            <div class="splash-loading-bar">
+              <div class="splash-loading-fill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lobby-screen hidden" id="lobbyScreen">
+        <div class="lobby-card">
+          <div class="lobby-copy">
+            <h1>Legends of Slop</h1>
+          </div>
+
+          <div class="lobby-controls">
+            <div class="lobby-setup">
+              <label class="field">
+                <span>Name</span>
+                <input id="nameInput" maxlength="16" placeholder="Player name" />
+              </label>
+
+              <div class="team-picker" id="teamPicker">
+                <button class="team-option selected" data-team="auto">
+                  <strong>Auto</strong>
+                  <small>Fastest join</small>
+                </button>
+                <button class="team-option" data-team="blue">
+                  <strong>Blue</strong>
+                  <small>Northwest base</small>
+                </button>
+                <button class="team-option" data-team="red">
+                  <strong>Red</strong>
+                  <small>Southeast base</small>
+                </button>
+              </div>
+
+              <button id="joinButton" class="join-button">Enter Match</button>
+
+              <div class="controls">
+                <h2>Controls</h2>
+                <p>`Right click` move. `Q/W/E` cast at cursor. `B` recall.</p>
+                <p>`Mouse wheel` zoom. `Space` re-centers. Shop only works in fountain.</p>
+              </div>
+
+              <div class="status" id="statusText">Disconnected</div>
+
+              <section class="lobby-team-rosters" id="lobbyTeamRosters" aria-live="polite"></section>
+            </div>
+
+            <div class="lobby-roster">
+              <div class="hero-picker">
+                <button class="hero-card selected" data-hero="circle">
+                  <strong>Orbit Striker</strong>
+                  <small>Fast diver</small>
+                </button>
+                <button class="hero-card" data-hero="square">
+                  <strong>Bulwark Block</strong>
+                  <small>Tank frontliner</small>
+                </button>
+                <button class="hero-card" data-hero="triangle">
+                  <strong>Prism Ace</strong>
+                  <small>Ranged damage</small>
+                </button>
+              <button class="hero-card" data-hero="hex">
+                <strong>Storm Hex</strong>
+                <small>Blink battlemage</small>
+              </button>
+              <button class="hero-card" data-hero="diamond">
+                <strong>Vector Viper</strong>
+                <small>Marksman carry</small>
+              </button>
+              <button class="hero-card" data-hero="nova">
+                <strong>Dawn Circuit</strong>
+                <small>Shield support</small>
+              </button>
+              <button class="hero-card" data-hero="onyx">
+                <strong>Rift Colossus</strong>
+                <small>Juggernaut brawler</small>
+              </button>
+              </div>
+
+              <section class="hero-detail-card" id="heroDetailCard" aria-live="polite">
+                <div class="hero-preview-panel">
+                  <div class="hero-preview-frame">
+                    <div class="lobby-preview portrait circle" id="heroPreview">
+                      <span class="portrait-glow"></span>
+                      <span class="portrait-motion"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="hero-detail-copy">
+                  <div class="hero-detail-heading">
+                    <p class="hero-detail-kicker" id="heroRole">Diver</p>
+                    <h2 id="heroName">Orbit Striker</h2>
+                    <p class="hero-detail-summary" id="heroSummary">A fast engager that dives through openings, bursts squishy targets, and gets out before the fight collapses.</p>
+                  </div>
+                  <div class="hero-detail-columns">
+                    <div class="hero-detail-block">
+                      <h3>Strengths</h3>
+                      <ul id="heroStrengths"></ul>
+                    </div>
+                    <div class="hero-detail-block">
+                      <h3>Weaknesses</h3>
+                      <ul id="heroWeaknesses"></ul>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/client.js"></script>
+  </body>
+</html>
